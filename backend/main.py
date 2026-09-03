@@ -5,7 +5,6 @@ from datetime import date
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 
-
 # =========================================================
 # PROJECT PATH
 # =========================================================
@@ -26,6 +25,7 @@ if PROJECT_ROOT not in sys.path:
 
 from db import get_connection
 from ml.predict import predict_delay, compute_risk
+from backend.routers.financing import router as financing_router
 
 
 # =========================================================
@@ -37,6 +37,9 @@ app = FastAPI(
     description="AI-Powered Supply-Chain Liquidity Intelligence",
     version="1.0.0"
 )
+
+# Register Member 4 financing routes
+app.include_router(financing_router)
 
 
 # =========================================================

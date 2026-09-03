@@ -24,7 +24,7 @@ if PROJECT_ROOT not in sys.path:
 # IMPORTS
 # =========================================================
 
-from db import get_connection
+from backend.db import get_connection
 from ml.predict import predict_delay, compute_risk
 from backend.routers.financing import router as financing_router
 

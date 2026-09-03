@@ -24,8 +24,10 @@ if PROJECT_ROOT not in sys.path:
 # IMPORTS
 # =========================================================
 
-from db import get_connection
+from backend.db import get_connection
 from ml.predict import predict_delay, compute_risk
+from backend.routers.bank import router as bank_router
+from backend.routers.financing import router as financing_router
 
 
 # =========================================================
@@ -37,6 +39,8 @@ app = FastAPI(
     description="AI-Powered Supply-Chain Liquidity Intelligence",
     version="1.0.0"
 )
+app.include_router(bank_router)
+app.include_router(financing_router)
 
 
 # =========================================================

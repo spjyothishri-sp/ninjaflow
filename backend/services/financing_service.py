@@ -1,59 +1,72 @@
-def recommend_financing(entity_id, db):
+from backend.services.bank_service import check_bank_eligibility
+
+
+def recommend_financing(entity_id, financing_input):
     """
-    Generate a financing recommendation based on the
-    projected liquidity gap.
+    Generate a financing recommendation and simulated
+    Bank/NBFC offer.
 
     NOTE:
-    All values used by NinjaFlow are simulated demo data.
+    All financing and banking values are simulated
+    for the NinjaFlow hackathon demo.
     """
 
-    # For now, use dummy forecast data.
-    # We will connect this to the real forecast later.
-    forecast = {
-        "gap_amount": 800000,
-        "days_until_gap": 11,
-        "predicted_delay_days": 8
-    }
-
-    gap = forecast["gap_amount"]
-    days_until = forecast["days_until_gap"]
-    predicted_delay = forecast["predicted_delay_days"]
-
-    # No financing required if there is no liquidity gap
-    if gap <= 0:
+    if not financing_input:
         return None
 
-    # Add 5% safety buffer
-    amount = round(gap * 1.05, -3)
+    if not financing_input.get("required"):
+        return {
+            "entity_id": entity_id,
+            "financing_required": False,
+            "message": "No financing required."
+        }
 
-    # Cover predicted payment delay + 7 day margin
-    duration = predicted_delay + 7
+    amount = float(financing_input["amount"])
+    duration_days = int(financing_input["duration_days"])
+    priority = financing_input["priority"]
 
-    # Determine priority
-    if days_until <= 7:
-        priority = "HIGH"
-    elif days_until <= 15:
-        priority = "MEDIUM"
-    else:
-        priority = "LOW"
+    # Financing recommendation
+    recommendation = {
+        "entity_id": entity_id,
+        "recommended_amount": round(amount, 2),
+        "duration_days": duration_days,
+        "priority": priority,
+        "reason": (
+            f"Financing of ₹{amount:,.0f} recommended for "
+            f"{duration_days} days based on the projected "
+            f"liquidity requirement."
+        )
+    }
 
-    # Explanation shown to the user
-    reason = (
-        f"Projected ₹{gap:,.0f} shortfall in {days_until} days "
-        f"due to predicted payment delays and upcoming supplier obligations."
+    # Send recommendation to simulated bank
+    bank_offer = check_bank_eligibility(
+        entity_id,
+        amount,
+        duration_days
     )
 
+    # Calculate remaining funding gap
+    approved_amount = float(bank_offer["approved_amount"])
+    remaining_gap = max(0, amount - approved_amount)
+
     return {
-        "entity_id": entity_id,
-        "amount": amount,
-        "duration_days": duration,
-        "reason": reason,
-        "priority": priority
+        "financing_required": True,
+        "recommendation": recommendation,
+        "bank_offer": bank_offer,
+        "remaining_gap": round(remaining_gap, 2)
     }
 
 
-# Test the function directly
 if __name__ == "__main__":
-    result = recommend_financing(1, None)
+
+    demo_input = {
+        "required": True,
+        "amount": 1546618.92,
+        "duration_days": 30,
+        "priority": "MEDIUM"
+    }
+
+    result = recommend_financing(1, demo_input)
+
     print("Financing Recommendation:")
     print(result)

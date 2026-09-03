@@ -45,9 +45,25 @@ export async function getForecast(id) {
   return forecast30.map((f) => ({ ...f, cash: Math.round(f.cash * factor) }))
 }
 
-export async function recommendFinancing(id) {
-  await wait(200)
-  return financingRecommendation
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
+
+export async function recommendFinancing(id, financingInput) {
+  const response = await fetch(`${API_BASE_URL}/financing/recommend`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      entity_id: Number(id),
+      financing_input: financingInput,
+    }),
+  })
+
+  if (!response.ok) {
+    throw new Error(`Financing API error: ${response.status}`)
+  }
+
+  return await response.json()
 }
 
 export async function checkBankEligibility(data) {
@@ -63,14 +79,19 @@ export async function checkBankEligibility(data) {
 }
 
 export async function simulate(data) {
-  await wait(200)
-  // Simple simulation: paymentDelay increases gap and risk
-  const { paymentDelay = 6, orderAmount = 200000, supplierPayment = 500000, currentCash = 1500000 } = data
-  const delayFactor = 1 + paymentDelay / 30
-  const projectedCash = Math.max(0, Math.round(currentCash - supplierPayment - orderAmount / 2 - paymentDelay * 15000))
-  const liquidityGap = Math.max(0, Math.round((supplierPayment + orderAmount) * delayFactor - currentCash))
-  const riskScore = Math.min(100, Math.round(30 + paymentDelay * 2 + (liquidityGap / 100000) * 5))
-  const riskLevel = riskScore > 70 ? 'CRITICAL' : riskScore > 45 ? 'AT RISK' : 'HEALTHY'
-  const financingRequired = liquidityGap > 0 ? liquidityGap : 0
-  return { projectedCash, liquidityGap, riskScore, riskLevel, financingRequired }
+  const response = await fetch(`${API_BASE_URL}/simulate`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      entity_id: Number(data.entity_id),
+    }),
+  })
+
+  if (!response.ok) {
+    throw new Error(`Simulation API error: ${response.status}`)
+  }
+
+  return await response.json()
 }

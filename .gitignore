@@ -1,0 +1,18 @@
+# Python virtual environment
+backend/venv/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Environment/secrets
+.env
+.env.*
+
+# SQLite temporary files
+*.db-shm
+*.db-wal
+
+# IDE files
+.vscode/
+.idea/
